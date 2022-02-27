@@ -17,30 +17,30 @@ type bloomFilter interface {
 	memoryUsage() int
 }
 
-type trivialBloomFilter struct {
+type notSoTrivialBloomFilter struct {
 	data  []uint64
 	hash1 hash.Hash64
 	hash2 hash.Hash64
 	len   uint64
 }
 
-func newTrivialBloomFilter() *trivialBloomFilter {
-	return &trivialBloomFilter{
-		data:  make([]uint64, 10000),
+func newNotSoTrivialBloomFilter() *notSoTrivialBloomFilter {
+	return &notSoTrivialBloomFilter{
+		data:  make([]uint64, 7500),
 		hash1: fnv.New64(),
 		hash2: fnv.New64a(),
-		len:   10000,
+		len:   7500,
 	}
 }
 
-func (b *trivialBloomFilter) add(item string) {
+func (b *notSoTrivialBloomFilter) add(item string) {
 	k1, k2 := b.getHashes(item)
 
 	b.data[k1/64] |= (1 << (k1 % 64))
 	b.data[k2/64] |= (1 << (k2 % 64))
 }
 
-func (b *trivialBloomFilter) maybeContains(item string) bool {
+func (b *notSoTrivialBloomFilter) maybeContains(item string) bool {
 	k1, k2 := b.getHashes(item)
 
 	v1 := b.data[k1/64] & (1 << (k1 % 64))
@@ -49,7 +49,7 @@ func (b *trivialBloomFilter) maybeContains(item string) bool {
 	return v1 != 0 && v2 != 0
 }
 
-func (b *trivialBloomFilter) getHashes(item string) (uint64, uint64) {
+func (b *notSoTrivialBloomFilter) getHashes(item string) (uint64, uint64) {
 	modVal := b.len * 64
 
 	b.hash1.Write([]byte(item))
@@ -63,6 +63,6 @@ func (b *trivialBloomFilter) getHashes(item string) (uint64, uint64) {
 	return k1, k2
 }
 
-func (b *trivialBloomFilter) memoryUsage() int {
+func (b *notSoTrivialBloomFilter) memoryUsage() int {
 	return binary.Size(b.data)
 }
